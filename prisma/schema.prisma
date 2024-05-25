@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+ 
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@map("sessions")
+}
+ 
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  friends       Friend[] @relation("UserFriends")
+  friendOf      Friend[] @relation("FriendsOfUser")
+
+  sentMessages  Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
+ 
+  @@map("users")
+}
+
+model Friend {
+  id        String      @id @default(cuid())
+  userId    String
+  friendId  String
+  status    FriendStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User @relation("UserFriends", fields: [userId], references: [id])
+  friend    User @relation("FriendsOfUser", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+  @@map("friends")
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  senderId    String
+  recepientId  String
+  content      String
+  // status    FriendStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender       User @relation("SentMessages", fields: [senderId], references: [id])
+  recipient    User @relation("ReceivedMessages", fields: [recepientId], references: [id])
+
+  @@map("messages")
+}
+
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+ 
