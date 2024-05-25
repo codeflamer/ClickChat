@@ -12,6 +12,9 @@ import {
 } from "@/lib/database/queries";
 import SignOut from "./sign-out";
 import { Separator } from "./ui/separator";
+import Link from "next/link";
+import { Button } from "./ui/button";
+import { PlusIcon } from "lucide-react";
 
 export default async function SideBar() {
   const session = await auth();
@@ -63,7 +66,7 @@ export default async function SideBar() {
           </ul>
         </div>
         <Separator />
-        <div>
+        <div className="mb-4">
           <h2>Request Declined...</h2>
           <ul>
             {declinedRequests?.length == 0 && <li>No Declined Requests</li>}
@@ -78,6 +81,12 @@ export default async function SideBar() {
               ))}
           </ul>
         </div>
+
+        <Button className="w-full">
+          <Link href="/app" className="flex items-center">
+            <PlusIcon /> Add
+          </Link>
+        </Button>
       </section>
       <div className="mt-2 w-full">
         <SignOut />

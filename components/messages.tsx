@@ -16,6 +16,7 @@ export default function Messages({ recipientId, messages, user }: MessageType) {
   //   console.log(messages);
   const messageRef = useRef<HTMLInputElement>(null);
   const id = useId();
+  const targetElement = useRef<HTMLDivElement>(null);
 
   const [optimisticMessages, addOptimisticMessage] = useOptimistic<
     Message[],
@@ -39,13 +40,18 @@ export default function Messages({ recipientId, messages, user }: MessageType) {
     addOptimisticMessage(content);
     await addMessage(recipientId, formData);
     messageRef!.current!.value = "";
+    targetElement?.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div>
-      <MessageArea messages={optimisticMessages} user={user} />
-      <div>
-        <form action={handleSubmit} className="mt-2">
+      <MessageArea
+        messages={optimisticMessages}
+        user={user}
+        targetElement={targetElement}
+      />
+      <div className="absolute bottom-0 w-full">
+        <form action={handleSubmit} className="mt-2 flex ">
           <label htmlFor="content" className="hidden">
             Send
           </label>
@@ -54,7 +60,7 @@ export default function Messages({ recipientId, messages, user }: MessageType) {
             id="content"
             name="content"
             placeholder="Enter Message"
-            className="w-full border border-black h-7 py-4 px-3 rounded-md"
+            className="w-full border border-black h-7 py-5 px-3 rounded-md flex-1"
             ref={messageRef}
           />
         </form>

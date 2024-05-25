@@ -2,9 +2,7 @@ import Messages from "@/components/messages";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth/auth";
 import { getConversations, getUserById } from "@/lib/database/queries";
-import { checkUser, cn, getDay } from "@/lib/utils";
 import { redirect } from "next/navigation";
-import { format } from "date-fns";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const session = await auth();
@@ -15,12 +13,11 @@ export default async function Page({ params }: { params: { id: string } }) {
   const recipient = await getUserById(recipientId);
 
   return (
-    <div className="flex flex-col justify-between h-screen border px-1">
-      <div className="text-center">
-        This is the chat page: Me ---- {recipient?.email}
+    <div className="flex flex-col h-screen border max-h-screen relative overflow-hidden">
+      <div className="text-center font-bold text-[20px]">
+        This is the chat page: Me & {recipient?.email}
         <Separator />
       </div>
-
       <div>
         <Messages
           recipientId={recipientId}
