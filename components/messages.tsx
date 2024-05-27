@@ -2,9 +2,21 @@
 
 import { addMessage } from "@/lib/database/mutation";
 import { Message } from "@prisma/client";
-import React, { useId, useOptimistic, useRef } from "react";
+import React, {
+  useEffect,
+  useId,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import MessageArea from "./message-area";
 import { User } from "next-auth";
+import io from "socket.io-client";
+import { Button } from "./ui/button";
+import { pusherClient } from "@/lib/pusher/pusher";
+import { v4 as uuidv4 } from "uuid";
+import { compareAsc } from "date-fns";
 
 type MessageType = {
   recipientId: string;
@@ -13,43 +25,84 @@ type MessageType = {
 };
 
 export default function Messages({ recipientId, messages, user }: MessageType) {
-  //   console.log(messages);
+  const privateChatId = "the-private-room"; //need to make it better
   const messageRef = useRef<HTMLInputElement>(null);
-  const id = useId();
   const targetElement = useRef<HTMLDivElement>(null);
 
-  const [optimisticMessages, addOptimisticMessage] = useOptimistic<
-    Message[],
-    string
-  >(messages, (state, newMessage) => [
-    ...state,
-    {
-      id,
-      senderId: user!.id!,
-      recepientId: recipientId,
-      content: newMessage,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
+  // const [optimisticMessages, addOptimisticMessage] = useOptimistic<
+  //   Message[],
+  //   string
+  // >(messages, (state, newMessage) => [
+  //   ...state,
+  //   {
+  //     id,
+  //     senderId: user!.id!,
+  //     recepientId: recipientId,
+  //     content: newMessage,
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //   },
+  // ]);
+
+  const [incomingMessages, setIncomingMessage] = useState<Message[]>([]);
 
   const handleSubmit = async (formData: FormData) => {
     const content = formData.get("content") as string;
     if (!content) return;
 
-    addOptimisticMessage(content);
     await addMessage(recipientId, formData);
+
     messageRef!.current!.value = "";
     targetElement?.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  useEffect(() => {
+    pusherClient.subscribe(privateChatId);
+
+    pusherClient.bind(
+      "incoming-messages",
+      (response: {
+        recipientId: string;
+        content: string;
+        senderId: string;
+        id: string;
+      }) => {
+        // console.log(response.recipientId);
+        console.log(response);
+        if (response.content) {
+          const incomingMsg = {
+            id: response.id,
+            senderId: response.senderId,
+            recepientId: response.recipientId,
+            content: response.content,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          setIncomingMessage((prev) =>
+            [...prev, incomingMsg].sort((a, b) =>
+              compareAsc(a.createdAt, b.createdAt)
+            )
+          );
+          targetElement?.current?.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    );
+
+    return () => {
+      pusherClient.unsubscribe(privateChatId);
+    };
+  }, []);
+  // console.log(incomingMessages);
   return (
     <div>
+      {/* {JSON.stringify(incomingMessages)} */}
       <MessageArea
-        messages={optimisticMessages}
+        messages={messages}
         user={user}
         targetElement={targetElement}
+        incomingMsgs={incomingMessages}
       />
+
       <div className="absolute bottom-0 w-full">
         <form action={handleSubmit} className="mt-2 flex ">
           <label htmlFor="content" className="hidden">
@@ -65,6 +118,7 @@ export default function Messages({ recipientId, messages, user }: MessageType) {
           />
         </form>
       </div>
+      {/* <Button onClick={() => sendMessage()}>Test real time</Button> */}
     </div>
   );
 }

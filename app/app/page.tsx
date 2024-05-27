@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
+import AddFriendForm from "@/components/add-friend-form";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth/auth";
-import { addFriendToCurrentUser } from "@/lib/database/mutation";
 
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export default async function Page() {
   const session = await auth();
@@ -14,18 +14,11 @@ export default async function Page() {
   return (
     <section className="space-y-3">
       <Separator />
+      <h2 className="text-[20px] text-center font-medium">Add Friend</h2>
       <div className="mt-3">
-        <form action={addFriendToCurrentUser}>
-          <label htmlFor="friendId">Add Friend email:</label>
-          <input
-            name="friendId"
-            id="friendId"
-            placeholder="Enter Friend's Email Address"
-            className="border-2 border-black rounded-md py-2 px-2"
-          />
-          <div className="my-2" />
-          <Button>Add Friend</Button>
-        </form>
+        <Suspense fallback={<>Loading...</>}>
+          <AddFriendForm />
+        </Suspense>
       </div>
       <Separator />
     </section>
