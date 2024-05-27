@@ -68,7 +68,7 @@ export default function Messages({ recipientId, messages, user }: MessageType) {
         id: string;
       }) => {
         // console.log(response.recipientId);
-        console.log(response);
+        // console.log(response);
         if (response.content) {
           const incomingMsg = {
             id: response.id,

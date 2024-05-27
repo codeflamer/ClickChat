@@ -176,7 +176,7 @@ export const addMessage = async (recipientId: string, formData: FormData) => {
         content: content,
       },
     });
-    revalidatePath(`/app/${recipientId}`);
+    // revalidatePath(`/app/${recipientId}`);
     // console.log(newMessage);
     // return { success: "Request Declined" };
     return newMessage;
