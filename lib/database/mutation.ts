@@ -96,13 +96,31 @@ export const addFriendToCurrentUser = async (
   revalidatePath("/app");
 };
 
+const createPrivateChat = async (friendId: string) => {
+  const session = await auth();
+  if (!session?.user?.id) return;
+  if (!friendId) return;
+
+  try {
+    await db.privateChat.create({
+      data: {
+        user1Id: session.user.id,
+        user2Id: friendId,
+      },
+    });
+  } catch (error) {
+    console.log("An error occured", error);
+    return { error: "Somewthing went wrong" };
+  }
+};
+
 export const acceptFriendRequest = async (friendId: string | undefined) => {
   const session = await auth();
   if (!session?.user?.id) return;
   if (!friendId) return;
 
   try {
-    await db.friend.update({
+    const response = await db.friend.update({
       where: {
         userId_friendId: {
           friendId: session.user.id,
@@ -113,8 +131,11 @@ export const acceptFriendRequest = async (friendId: string | undefined) => {
         status: "ACCEPTED",
       },
     });
-    revalidatePath("/app");
-    return { success: "Request Accepted" };
+    if (response) {
+      await createPrivateChat(friendId);
+      revalidatePath("/app");
+      return { success: "Request Accepted" };
+    }
   } catch (error) {
     console.log("An error occured", error);
     return { error: "Somewthing went wrong" };
@@ -150,7 +171,11 @@ const AddMessageSchema = z.object({
   content: z.string(),
 });
 
-export const addMessage = async (recipientId: string, formData: FormData) => {
+export const addMessage = async (
+  recipientId: string,
+  formData: FormData,
+  privateChatId: string
+) => {
   const session = await auth();
   if (!session?.user?.id) return;
   if (!recipientId) return;
@@ -159,7 +184,7 @@ export const addMessage = async (recipientId: string, formData: FormData) => {
     content,
   });
   if (!validationData.success) return;
-  const privateChatId = "the-private-room";
+  // const privateChatId = "the-private-room";
   const senderId = session.user.id;
   pusherServer.trigger(privateChatId, "incoming-messages", {
     senderId,

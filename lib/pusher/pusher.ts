@@ -9,14 +9,6 @@ export const pusherServer = new PusherServer({
   useTLS: true,
 });
 
-// export const pusherServer = new PusherServer({
-//   appId: "1809216",
-//   key: "af031d1e14243c3ef36c",
-//   secret: process.env.PUSHER_APP_SECRET!,
-//   cluster: "eu",
-//   useTLS: true,
-// });
-
 export const pusherClient = new PusherClient(
   process.env.NEXT_PUBLIC_PUSHER_APP_KEY!,
   {

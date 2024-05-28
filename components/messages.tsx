@@ -2,47 +2,28 @@
 
 import { addMessage } from "@/lib/database/mutation";
 import { Message } from "@prisma/client";
-import React, {
-  useEffect,
-  useId,
-  useMemo,
-  useOptimistic,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MessageArea from "./message-area";
 import { User } from "next-auth";
-import io from "socket.io-client";
-import { Button } from "./ui/button";
 import { pusherClient } from "@/lib/pusher/pusher";
-import { v4 as uuidv4 } from "uuid";
 import { compareAsc } from "date-fns";
 
 type MessageType = {
   recipientId: string;
   messages: Message[];
   user: User;
+  privateChatId: string;
 };
 
-export default function Messages({ recipientId, messages, user }: MessageType) {
-  const privateChatId = "the-private-room"; //need to make it better
+export default function Messages({
+  recipientId,
+  messages,
+  user,
+  privateChatId,
+}: MessageType) {
+  // const privateChatId = "the-private-room"; //need to make it better
   const messageRef = useRef<HTMLInputElement>(null);
   const targetElement = useRef<HTMLDivElement>(null);
-
-  // const [optimisticMessages, addOptimisticMessage] = useOptimistic<
-  //   Message[],
-  //   string
-  // >(messages, (state, newMessage) => [
-  //   ...state,
-  //   {
-  //     id,
-  //     senderId: user!.id!,
-  //     recepientId: recipientId,
-  //     content: newMessage,
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //   },
-  // ]);
 
   const [incomingMessages, setIncomingMessage] = useState<Message[]>([]);
 
@@ -50,7 +31,7 @@ export default function Messages({ recipientId, messages, user }: MessageType) {
     const content = formData.get("content") as string;
     if (!content) return;
 
-    await addMessage(recipientId, formData);
+    await addMessage(recipientId, formData, privateChatId);
 
     messageRef!.current!.value = "";
     targetElement?.current?.scrollIntoView({ behavior: "smooth" });

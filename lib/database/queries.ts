@@ -184,3 +184,36 @@ export const getConversations = async (recepientId: string) => {
   }
   console.log(recepientId);
 };
+
+export const getPrivateChatId = async (recepientId: string) => {
+  const session = await auth();
+  if (!session?.user?.id) return;
+  if (!recepientId) return;
+
+  try {
+    const privateChatQueries = [];
+    const chatId1 = db.privateChat.findMany({
+      where: {
+        user1Id: session.user.id,
+        user2Id: recepientId,
+      },
+    });
+
+    const chatId2 = db.privateChat.findMany({
+      where: {
+        user1Id: recepientId,
+        user2Id: session.user.id,
+      },
+    });
+
+    privateChatQueries.push(chatId1, chatId2);
+
+    const [privateChat1, privateChat2] = await Promise.all(privateChatQueries);
+
+    const privateChat = [...privateChat1, ...privateChat2];
+    // console.log(privateChat);
+    return privateChat[0].id;
+  } catch (error) {
+    console.log("An error occurred", error);
+  }
+};

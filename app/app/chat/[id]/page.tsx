@@ -1,7 +1,11 @@
 import Messages from "@/components/messages";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth/auth";
-import { getConversations, getUserById } from "@/lib/database/queries";
+import {
+  getConversations,
+  getPrivateChatId,
+  getUserById,
+} from "@/lib/database/queries";
 import { redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: { id: string } }) {
@@ -11,6 +15,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   const conversations = await getConversations(recipientId);
   const recipient = await getUserById(recipientId);
+  const privateChatId = await getPrivateChatId(recipientId);
 
   return (
     <div className="flex flex-col h-screen border max-h-screen relative overflow-hidden">
@@ -23,6 +28,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           recipientId={recipientId}
           messages={conversations || []}
           user={session.user}
+          privateChatId={privateChatId!}
         />
       </div>
     </div>
