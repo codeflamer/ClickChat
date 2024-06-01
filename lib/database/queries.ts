@@ -161,12 +161,18 @@ export const getConversations = async (recepientId: string) => {
         senderId: session.user.id,
         recepientId,
       },
+      include: {
+        messageId: true,
+      },
     });
 
     const msgFromRecipient = db.message.findMany({
       where: {
         senderId: recepientId,
         recepientId: session.user.id,
+      },
+      include: {
+        messageId: true,
       },
     });
 

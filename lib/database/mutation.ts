@@ -173,13 +173,13 @@ const AddMessageSchema = z.object({
 
 export const addMessage = async (
   recipientId: string,
-  formData: FormData,
+  content: string,
   privateChatId: string
 ) => {
   const session = await auth();
   if (!session?.user?.id) return;
   if (!recipientId) return;
-  const content = formData.get("content") as string;
+
   const validationData = AddMessageSchema.safeParse({
     content,
   });
@@ -208,5 +208,53 @@ export const addMessage = async (
   } catch (error) {
     console.log("An error occured", error);
     return { error: "Somewthing went wrong,cound not send message" };
+  }
+};
+
+export const createMessageImage = async (
+  url: string,
+  senderId: string,
+  recipientId: string
+) => {
+  const session = await auth();
+  if (!session?.user?.id) return;
+
+  try {
+    const message = await db.message.create({
+      data: {
+        senderId: session.user.id,
+        recepientId: recipientId,
+      },
+    });
+    const ImageMessage = await db.messageImage.create({
+      data: {
+        imageUrl: url,
+        senderId: senderId,
+        messageId: message.id,
+      },
+    });
+    return { imageMessage: ImageMessage, message: message };
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const addMessageContent = async (content: string, messageId: string) => {
+  const session = await auth();
+  if (!session?.user?.id) return;
+
+  try {
+    const updatedMessage = await db.message.update({
+      where: {
+        id: messageId,
+      },
+      data: {
+        content: content,
+      },
+    });
+    return { success: updatedMessage };
+  } catch (error) {
+    console.log(error);
+    return { failure: "Something went wrong" };
   }
 };

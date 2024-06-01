@@ -85,7 +85,7 @@ model Message {
   id        String      @id @default(cuid())
   senderId    String
   recepientId  String
-  content      String
+  content      String?
   // status    FriendStatus @default(PENDING)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,7 +93,24 @@ model Message {
   sender       User @relation("SentMessages", fields: [senderId], references: [id])
   recipient    User @relation("ReceivedMessages", fields: [recepientId], references: [id])
 
+  messageId  MessageImage?
+
   @@map("messages")
+}
+
+model MessageImage {
+  id        String      @id @default(cuid())
+  imageUrl  String
+  senderId    String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  message   Message   @relation(fields: [messageId], references: [id])
+  messageId  String @unique
+ 
+
+  @@map("messageImage")
 }
 
 model PrivateChat {
@@ -110,9 +127,16 @@ model PrivateChat {
 }
 
 
+
+
 enum FriendStatus {
   PENDING
   ACCEPTED
   BLOCKED
 }
+
+// enum MessageType {
+//   VIDEO
+//   IMAGE
+// }
  
