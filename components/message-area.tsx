@@ -1,5 +1,5 @@
 import { checkUser, cn, getDay } from "@/lib/utils";
-import { Message } from "@prisma/client";
+import { Message, MessageImage } from "@prisma/client";
 import { format } from "date-fns";
 import { User } from "next-auth";
 import Image from "next/image";
@@ -11,7 +11,7 @@ export default function MessageArea({
   targetElement,
   incomingMsgs,
 }: {
-  messages: Message[];
+  messages: (Message & { messageId: MessageImage })[];
   user: User;
   targetElement: React.RefObject<HTMLDivElement>;
   incomingMsgs: Message[];
@@ -23,8 +23,8 @@ export default function MessageArea({
 
   return (
     <section
-      className="flex-1 space-y-1 mt-2 px-1  overflow-y-scroll"
-      style={{ height: "calc(100vh - 70px)" }}
+      className="mt-2 flex-1 space-y-1 overflow-y-scroll px-1"
+      style={{ height: "calc(100vh - 95px)" }}
       // initially 80px
     >
       {messages?.map((message) => (
@@ -36,14 +36,18 @@ export default function MessageArea({
           })}
         >
           <div
-            className={cn("rounded-sm px-2 py-2  text-white", {
+            className={cn("rounded-sm px-2 py-2 text-white", {
               "bg-[#131720]": checkUser(message.senderId, user!.id!),
               "bg-[#2d3748]": !checkUser(message.senderId, user!.id!),
             })}
           >
             {/* {message} */}
             {message.messageId && (
-              <a href={message.messageId.imageUrl} target="_blank">
+              <a
+                href={message.messageId.imageUrl}
+                target="_blank"
+                title="media_link"
+              >
                 <Image
                   src={message.messageId.imageUrl}
                   alt={message.id}
@@ -54,7 +58,7 @@ export default function MessageArea({
               </a>
             )}
             <p>{message.content}</p>
-            <span className="text-gray-200 text-[10px]">
+            <span className="text-[10px] text-gray-200">
               {format(message.createdAt, "HH:mm")}/ {getDay(message.createdAt)}
               <br />
             </span>
@@ -73,13 +77,13 @@ export default function MessageArea({
             })}
           >
             <div
-              className={cn("rounded-sm px-2 py-2  text-white", {
+              className={cn("rounded-sm px-2 py-2 text-white", {
                 "bg-[#131720]": checkUser(message.senderId, user!.id!),
                 "bg-[#2d3748]": !checkUser(message.senderId, user!.id!),
               })}
             >
               <p>{message.content}</p>
-              <span className="text-gray-200 text-[10px]">
+              <span className="text-[10px] text-gray-200">
                 {format(message.createdAt, "HH:mm")}/{" "}
                 {getDay(message.createdAt)}
                 <br />

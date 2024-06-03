@@ -1,11 +1,7 @@
 "use server";
 
 import { auth } from "../auth/auth";
-import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl as SignedURL } from "@aws-sdk/s3-request-presigner";
 import { generateFileName } from "../utils";
 import { createMessageImage } from "../database/mutation";
@@ -25,7 +21,7 @@ export async function getSignedUrl(
   type: string,
   size: number,
   checkSum: string,
-  recipientId: string
+  recipientId: string,
 ) {
   const session = await auth();
   if (!session) {
@@ -53,7 +49,7 @@ export async function getSignedUrl(
   const response = await createMessageImage(
     signedURL.split("?")[0],
     session.user!.id!,
-    recipientId
+    recipientId,
   );
   if (!response) {
     return { failure: "Something went wrong" };

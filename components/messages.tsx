@@ -1,7 +1,7 @@
 "use client";
 
 import { addMessage, addMessageContent } from "@/lib/database/mutation";
-import { Message } from "@prisma/client";
+import { Message, MessageImage } from "@prisma/client";
 import React, { useEffect, useRef, useState } from "react";
 import MessageArea from "./message-area";
 import { User } from "next-auth";
@@ -11,10 +11,11 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { getSignedUrl } from "@/lib/s3/actions";
 import { computeSHA256 } from "@/lib/utils";
+import { CircleX, Paperclip, SendHorizontal } from "lucide-react";
 
 type MessageType = {
   recipientId: string;
-  messages: Message[];
+  messages: (Message & { messageId: MessageImage })[];
   user: User;
   privateChatId: string;
 };
@@ -71,12 +72,12 @@ export default function Messages({
           };
           setIncomingMessage((prev) =>
             [...prev, incomingMsg].sort((a, b) =>
-              compareAsc(a.createdAt, b.createdAt)
-            )
+              compareAsc(a.createdAt, b.createdAt),
+            ),
           );
           targetElement?.current?.scrollIntoView({ behavior: "smooth" });
         }
-      }
+      },
     );
 
     return () => {
@@ -105,7 +106,7 @@ export default function Messages({
           file.type,
           file.size,
           checkSum,
-          recipientId
+          recipientId,
         );
 
         if (signedUrlResult.failure !== undefined) {
@@ -146,12 +147,16 @@ export default function Messages({
     } catch (e) {
       console.error(e);
       return;
+    } finally {
+      setFile(undefined);
+      setFileUrl(undefined);
     }
   };
 
   return (
     <div>
       {/* {JSON.stringify(incomingMessages)} */}
+
       <MessageArea
         messages={messages}
         user={user}
@@ -159,23 +164,37 @@ export default function Messages({
         incomingMsgs={incomingMessages}
       />
 
-      {/* {file && fileUrl && (
-        <div className="border-2 border-black h-32 w-32 rounded-lg">
-          <h2>Little preview</h2>
-          <Image
-            src={fileUrl}
-            alt={file.name}
-            width="300"
-            height="300"
-            className="object-cover "
-          />
+      {file && fileUrl && (
+        <div className="absolute bottom-[55px] flex">
+          <div className="max-h-[300px] w-[400px] border-2 border-black">
+            {/* <h2>Little preview</h2> */}
+            <Image
+              src={fileUrl}
+              alt={file.name}
+              width="400"
+              height="500"
+              className="object-cover"
+            />
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setFile(undefined);
+                setFileUrl(undefined);
+              }}
+              title="remove button"
+              className="bg-transparent"
+            >
+              <CircleX />
+            </button>
+          </div>
         </div>
-      )} */}
+      )}
 
-      <div className="absolute bottom-0 w-full">
+      <div className="absolute bottom-0 m-0 w-full rounded-md">
         {/* action={handleSubmit} */}
-        <form className="mt-2 flex ">
-          {/* <label htmlFor="content" className="hidden">
+        <form className="relative flex items-center py-1">
+          <label htmlFor="content" className="hidden">
             Send
           </label>
           <input
@@ -183,23 +202,37 @@ export default function Messages({
             id="content"
             name="content"
             placeholder="Enter Message"
-            className="w-full border border-black h-7 py-5 px-3 rounded-md flex-1"
+            className="h-7 w-full flex-1 rounded-md border-2 border-gray-300 px-3 py-6 focus:border-black focus:outline-none"
             ref={messageRef}
-          /> */}
-          <div className="mb-4">
-            <input
-              type="file"
-              id="media"
-              name="media"
-              placeholder="Enter Message"
-              className="w-full border border-black h-[90px] py-5 px-3 rounded-md flex-1"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={handleChange}
-            />
+          />
+
+          <input
+            type="file"
+            id="media"
+            name="media"
+            hidden
+            placeholder="Enter Message"
+            className="h-[90px] w-[250px] flex-1 rounded-md border border-black px-3 py-5"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            onChange={handleChange}
+          />
+          <div className="absolute right-2">
+            <div className="flex">
+              <label
+                htmlFor="media"
+                className="mr-1 flex cursor-pointer items-center rounded-md border-0 bg-primary px-4 py-1 text-sm font-semibold text-white hover:bg-primary/90"
+              >
+                <Paperclip />
+              </label>
+              <Button
+                type="submit"
+                onClick={handleSubmitClick}
+                className="h-full bg-green-400 text-white hover:bg-green-500"
+              >
+                <SendHorizontal />
+              </Button>
+            </div>
           </div>
-          <Button type="submit" onClick={handleSubmitClick}>
-            Submit
-          </Button>
         </form>
       </div>
 

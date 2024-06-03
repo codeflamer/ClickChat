@@ -6,6 +6,7 @@ import {
   getPrivateChatId,
   getUserById,
 } from "@/lib/database/queries";
+import { Message, MessageImage } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: { id: string } }) {
@@ -18,8 +19,8 @@ export default async function Page({ params }: { params: { id: string } }) {
   const privateChatId = await getPrivateChatId(recipientId);
 
   return (
-    <div className="flex flex-col h-screen border max-h-screen relative overflow-hidden">
-      <div className="text-center font-bold text-[20px]">
+    <div className="relative flex h-screen max-h-screen flex-col overflow-hidden border">
+      <div className="text-center text-[20px] font-bold">
         This is the chat page: Me & {recipient?.email}
         <Separator />
       </div>
