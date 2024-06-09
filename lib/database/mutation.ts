@@ -5,96 +5,69 @@ import { auth } from "../auth/auth";
 import { db } from "../prisma/db";
 import { z } from "zod";
 import { getFriends } from "./queries";
-import { User } from "@prisma/client";
 import { pusherServer } from "../pusher/pusher";
 import { v4 as uuidv4 } from "uuid";
+import { AddFriendSchema } from "@/types";
+import { createSafeActionClient } from "next-safe-action";
 
-const AddFriendSchema = z.object({
-  email: z
-    .string({
-      invalid_type_error: "Invalid Email",
-    })
-    .email(),
+export const action = createSafeActionClient({
+  handleReturnedServerError(e) {
+    return "Oh no, something went wrong!";
+  },
 });
 
-export type State = {
-  errors?: {
-    email?: string[];
-  };
-  message?: string | null;
-};
-
-export const addFriendToCurrentUser = async (
-  prevState: State,
-  val: FormData
-) => {
+export const addFriendSafely = action(AddFriendSchema, async ({ email }) => {
   const session = await auth();
   if (!session?.user?.id) return;
 
-  const friendEmail = val.get("friendId") as string;
+  if (!email) return { error: "email cannot be empty" };
 
-  const validationData = AddFriendSchema.safeParse({
-    email: friendEmail,
-  });
-
-  if (!validationData.success) {
-    return {
-      errors: validationData.error.flatten().fieldErrors,
-      message: "Please enter a valid email",
-    };
-  }
+  const friendEmail = email;
 
   const userId = session.user?.id as string;
+  // to verify if the added user exists
   const friend = await db.user.findUnique({
     where: {
       email: friendEmail,
     },
   });
-  //   console.log(friend);
-  const friendId = friend?.id;
-  if (!friendId) return;
+  const friendId = friend?.id; //if friend esists we get the friendID
+  if (!friendId) return { error: `User with ${email} does not exist` };
+  if (friendId == userId) return { error: "You can't add yourself" };
+
+  console.log("Friend Found");
+
+  const friendLists = await getFriends();
+  console.log(friendLists);
+
+  //for a more robust check , make it check against user not in the with STATUS PCCEPTED AND PENDING
+  //check against already added friends
+  if (friendLists?.length) {
+    for (let i = 0; i < friendLists!.length; i++) {
+      console.log(friend?.id);
+      console.log(friendLists[i]!.id);
+      if (friend?.id == friendLists[i]!.id) {
+        return { error: "Friend Request Already Sent" };
+      }
+    }
+  }
 
   try {
-    //check agains already added friends
-    // const friendLists = await getFriends();
-    // friendLists?.forEach((friend) => {
-    //   if (friend?.id == friendId) {
-    //     return {
-    //       errors: {},
-    //       message: "Already Added Friends",
-    //     };
-    //   }
-    // });
-
-    // for (let i = 0; i < friendLists!.length; i++) {
-    //   if (friend?.id == friendId[i]) {
-    //     throw new Error("User already Exists");
-    //   }
-    // }
-    // for(friend of friendLists) {
-
-    // }
-
-    //check against adding self
-    // Nextup
-
-    await db.friend.create({
+    const createResponse = await db.friend.create({
       data: {
         userId,
         friendId,
       },
     });
-    console.log("End here");
+    return { success: `Friend request sent to ${friendEmail}` };
   } catch (error) {
     // return new Response(null, { status: 500 });
     console.log("An error occured", error);
-    return {
-      message: "Something went wrong, Couldnt add friend",
-    };
+    return { error: "Something Happened , couldnt sent friend request" };
   }
 
-  revalidatePath("/app");
-};
+  // revalidatePath("/app");
+});
 
 const createPrivateChat = async (friendId: string) => {
   const session = await auth();
@@ -174,7 +147,7 @@ const AddMessageSchema = z.object({
 export const addMessage = async (
   recipientId: string,
   content: string,
-  privateChatId: string
+  privateChatId: string,
 ) => {
   const session = await auth();
   if (!session?.user?.id) return;
@@ -213,8 +186,8 @@ export const addMessage = async (
 
 export const createMessageImage = async (
   url: string,
-  senderId: string,
-  recipientId: string
+  recipientId: string,
+  content: string,
 ) => {
   const session = await auth();
   if (!session?.user?.id) return;
@@ -224,12 +197,13 @@ export const createMessageImage = async (
       data: {
         senderId: session.user.id,
         recepientId: recipientId,
+        content: content,
       },
     });
     const ImageMessage = await db.messageImage.create({
       data: {
         imageUrl: url,
-        senderId: senderId,
+        senderId: session.user.id,
         messageId: message.id,
       },
     });

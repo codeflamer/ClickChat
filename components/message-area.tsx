@@ -51,9 +51,10 @@ export default function MessageArea({
                 <Image
                   src={message.messageId.imageUrl}
                   alt={message.id}
-                  width={200}
-                  height={200}
+                  width={100}
+                  height={100}
                   objectFit="cover"
+                  className="h-[200px] w-full max-w-[300px] rounded-sm"
                 />
               </a>
             )}

@@ -7,6 +7,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "real-time-app-anonymous.s3.ap-southeast-2.amazonaws.com",
       },
+      {
+        protocol: "http",
+        hostname: "res.cloudinary.com",
+      },
     ],
   },
 };

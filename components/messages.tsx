@@ -12,6 +12,10 @@ import { Button } from "./ui/button";
 import { getSignedUrl } from "@/lib/s3/actions";
 import { computeSHA256 } from "@/lib/utils";
 import { CircleX, Paperclip, SendHorizontal } from "lucide-react";
+import {
+  getSignatureServer,
+  uploadPhotoContentDB,
+} from "@/lib/cloudinary/actions";
 
 type MessageType = {
   recipientId: string;
@@ -99,42 +103,42 @@ export default function Messages({
   const handleSubmitClick = async (e: any) => {
     e.preventDefault();
     try {
+      // console.log(file);
       let content;
       if (file) {
-        const checkSum = await computeSHA256(file);
-        const signedUrlResult = await getSignedUrl(
-          file.type,
-          file.size,
-          checkSum,
-          recipientId,
-        );
+        const getSignature = await getSignatureServer();
+        const cloud_name = "demo";
 
-        if (signedUrlResult.failure !== undefined) {
-          console.error(signedUrlResult.failure);
-          throw new Error(signedUrlResult.failure);
-        }
+        // signature timestamp api_key
+        const cloudinaryURl = `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`;
+        if (!getSignature.success) return;
 
-        const url = signedUrlResult.success!.url;
+        const data = new FormData();
+        data.append("file", file);
+        data.append("timestamp", `${getSignature.success.timestamp}`);
+        data.append("api_key", "411838697498383");
+        data.append("upload_preset", "ml_default");
 
-        const messageId = signedUrlResult.success!.messageId;
-
-        await fetch(url, {
-          method: "PUT",
-          body: file,
-          headers: {
-            "Content-Type": file.type,
-          },
+        const response = await fetch(cloudinaryURl, {
+          method: "POST",
+          body: data,
         });
 
-        // const content = "this is the content";
+        const responseData = await response.json();
+
+        console.log(responseData);
+
+        const photoData = {
+          public_id: responseData.public_id,
+          version: responseData.version,
+          signature: responseData.signature,
+          url: responseData.url,
+        };
+
         content = messageRef.current?.value;
-        if (!content) return;
-        const updatedMessage = await addMessageContent(content, messageId);
-        if (updatedMessage?.failure !== undefined) {
-          console.error("something went wrong");
-          return;
-        }
-        console.log("message successfully sent");
+        if (!content) content = "";
+        await uploadPhotoContentDB(photoData, content, recipientId);
+        messageRef!.current!.value = "";
       } else {
         content = messageRef.current?.value as string;
         const response = await addMessage(recipientId, content, privateChatId);
@@ -142,16 +146,72 @@ export default function Messages({
           console.log("Message successfully sent");
           messageRef!.current!.value = "";
           targetElement?.current?.scrollIntoView({ behavior: "smooth" });
+          messageRef!.current!.value = "";
         }
       }
-    } catch (e) {
-      console.error(e);
-      return;
+    } catch (error) {
     } finally {
       setFile(undefined);
       setFileUrl(undefined);
     }
   };
+
+  // const handleSubmitClick = async (e: any) => {
+  //   e.preventDefault();
+  //   try {
+  //     let content;
+  //     if (file) {
+  //       const checkSum = await computeSHA256(file);
+  //       const signedUrlResult = await getSignedUrl(
+  //         file.type,
+  //         file.size,
+  //         checkSum,
+  //         recipientId,
+  //       );
+
+  //       if (signedUrlResult.failure !== undefined) {
+  //         console.error(signedUrlResult.failure);
+  //         throw new Error(signedUrlResult.failure);
+  //       }
+
+  //       const url = signedUrlResult.success!.url;
+
+  //       const messageId = signedUrlResult.success!.messageId;
+
+  //       await fetch(url, {
+  //         method: "PUT",
+  //         body: file,
+  //         headers: {
+  //           "Content-Type": file.type,
+  //         },
+  //       });
+
+  //       // const content = "this is the content";
+  //       content = messageRef.current?.value;
+  //       if (!content) return;
+  //       const updatedMessage = await addMessageContent(content, messageId);
+  //       if (updatedMessage?.failure !== undefined) {
+  //         console.error("something went wrong");
+  //         return;
+  //       }
+  //       console.log("message successfully sent");
+  //     } else {
+  //       content = messageRef.current?.value as string;
+  //       const response = await addMessage(recipientId, content, privateChatId);
+  //       if (response) {
+  //         console.log("Message successfully sent");
+  //         messageRef!.current!.value = "";
+  //         targetElement?.current?.scrollIntoView({ behavior: "smooth" });
+  //       }
+  //     }
+  //   } catch (e) {
+  //     console.error(e);
+  //     return;
+  //   } finally {
+  //     setFile(undefined);
+  //     setFileUrl(undefined);
+  //   }
+  // };
 
   return (
     <div>

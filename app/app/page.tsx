@@ -14,7 +14,9 @@ export default async function Page() {
   return (
     <section className="space-y-3">
       <Separator />
-      <h2 className="text-[20px] text-center font-medium">Add Friend</h2>
+      <h2 className="text-center text-[20px] font-medium">
+        Send Friend Request{" "}
+      </h2>
       <div className="mt-3">
         <Suspense fallback={<>Loading...</>}>
           <AddFriendForm />

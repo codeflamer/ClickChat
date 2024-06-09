@@ -48,8 +48,8 @@ export async function getSignedUrl(
   const signedURL = await SignedURL(s3, putObjectCommand, { expiresIn: 60 });
   const response = await createMessageImage(
     signedURL.split("?")[0],
-    session.user!.id!,
     recipientId,
+    "",
   );
   if (!response) {
     return { failure: "Something went wrong" };
