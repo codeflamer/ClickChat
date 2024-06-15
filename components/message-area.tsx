@@ -14,7 +14,7 @@ export default function MessageArea({
   messages: (Message & { messageId: MessageImage })[];
   user: User;
   targetElement: React.RefObject<HTMLDivElement>;
-  incomingMsgs: Message[];
+  incomingMsgs: (Message & { messageId: MessageImage })[];
 }) {
   useEffect(() => {
     targetElement?.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,10 +51,12 @@ export default function MessageArea({
                 <Image
                   src={message.messageId.imageUrl}
                   alt={message.id}
-                  width={100}
-                  height={100}
+                  width={600}
+                  height={600}
                   objectFit="cover"
+                  quality={100}
                   className="h-[200px] w-full max-w-[300px] rounded-sm"
+                  loading="lazy"
                 />
               </a>
             )}
@@ -69,7 +71,7 @@ export default function MessageArea({
       {/* for incoming messages */}
 
       {incomingMsgs.length > 0 &&
-        incomingMsgs?.map((message: Message) => (
+        incomingMsgs?.map((message: Message & { messageId?: MessageImage }) => (
           <div
             key={message.id}
             className={cn("flex", {
@@ -83,6 +85,22 @@ export default function MessageArea({
                 "bg-[#2d3748]": !checkUser(message.senderId, user!.id!),
               })}
             >
+              {message.messageId && (
+                <a
+                  href={message.messageId.imageUrl}
+                  target="_blank"
+                  title="media_link"
+                >
+                  <Image
+                    src={message.messageId.imageUrl}
+                    alt={message.id}
+                    width={100}
+                    height={100}
+                    objectFit="cover"
+                    className="h-[200px] w-full max-w-[300px] rounded-sm"
+                  />
+                </a>
+              )}
               <p>{message.content}</p>
               <span className="text-[10px] text-gray-200">
                 {format(message.createdAt, "HH:mm")}/{" "}

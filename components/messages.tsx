@@ -9,8 +9,6 @@ import { pusherClient } from "@/lib/pusher/pusher";
 import { compareAsc } from "date-fns";
 import Image from "next/image";
 import { Button } from "./ui/button";
-import { getSignedUrl } from "@/lib/s3/actions";
-import { computeSHA256 } from "@/lib/utils";
 import { CircleX, Paperclip, SendHorizontal } from "lucide-react";
 import {
   getSignatureServer,
@@ -37,20 +35,9 @@ export default function Messages({
   const [fileUrl, setFileUrl] = useState<string | null>();
   // const [content,setContent] = useState<string | undefined>()
 
-  const [incomingMessages, setIncomingMessage] = useState<Message[]>([]);
-
-  const handleSubmit = async (formData: FormData) => {
-    const content = formData.get("content") as string;
-    if (!content) return;
-
-    const media = formData.get("media") as string;
-    console.log(media);
-
-    // await addMessage(recipientId, formData, privateChatId);
-
-    // messageRef!.current!.value = "";
-    // targetElement?.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [incomingMessages, setIncomingMessage] = useState(
+    [] as (Message & { messageId?: MessageImage })[],
+  );
 
   useEffect(() => {
     pusherClient.subscribe(privateChatId);
@@ -62,23 +49,35 @@ export default function Messages({
         content: string;
         senderId: string;
         id: string;
+        url: string;
       }) => {
         // console.log(response.recipientId);
         // console.log(response);
-        if (response.content) {
-          const incomingMsg = {
+        if (response.content || response.url) {
+          const incomingMsg: Message & { messageId?: MessageImage } = {
             id: response.id,
             senderId: response.senderId,
             recepientId: response.recipientId,
             content: response.content,
             createdAt: new Date(),
             updatedAt: new Date(),
+            messageId: response.url
+              ? {
+                  id: "",
+                  imageUrl: response.url,
+                  senderId: "",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  messageId: "",
+                }
+              : undefined,
           };
           setIncomingMessage((prev) =>
             [...prev, incomingMsg].sort((a, b) =>
               compareAsc(a.createdAt, b.createdAt),
             ),
           );
+          // console.log(incomingMsg);
           targetElement?.current?.scrollIntoView({ behavior: "smooth" });
         }
       },
@@ -107,7 +106,7 @@ export default function Messages({
       let content;
       if (file) {
         const getSignature = await getSignatureServer();
-        const cloud_name = "demo";
+        const cloud_name = process.env.NEXT_PUBLIC_CLOUD_NAME;
 
         // signature timestamp api_key
         const cloudinaryURl = `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`;
@@ -116,8 +115,11 @@ export default function Messages({
         const data = new FormData();
         data.append("file", file);
         data.append("timestamp", `${getSignature.success.timestamp}`);
-        data.append("api_key", "411838697498383");
-        data.append("upload_preset", "ml_default");
+        data.append("api_key", process.env.NEXT_PUBLIC_CLOUD_API_KEY!);
+        data.append(
+          "upload_preset",
+          process.env.NEXT_PUBLIC_CLOUD_UPLOAD_PRESET!,
+        );
 
         const response = await fetch(cloudinaryURl, {
           method: "POST",
@@ -125,8 +127,6 @@ export default function Messages({
         });
 
         const responseData = await response.json();
-
-        console.log(responseData);
 
         const photoData = {
           public_id: responseData.public_id,
@@ -137,7 +137,12 @@ export default function Messages({
 
         content = messageRef.current?.value;
         if (!content) content = "";
-        await uploadPhotoContentDB(photoData, content, recipientId);
+        await uploadPhotoContentDB(
+          photoData,
+          content,
+          recipientId,
+          privateChatId,
+        );
         messageRef!.current!.value = "";
       } else {
         content = messageRef.current?.value as string;
@@ -156,72 +161,15 @@ export default function Messages({
     }
   };
 
-  // const handleSubmitClick = async (e: any) => {
-  //   e.preventDefault();
-  //   try {
-  //     let content;
-  //     if (file) {
-  //       const checkSum = await computeSHA256(file);
-  //       const signedUrlResult = await getSignedUrl(
-  //         file.type,
-  //         file.size,
-  //         checkSum,
-  //         recipientId,
-  //       );
-
-  //       if (signedUrlResult.failure !== undefined) {
-  //         console.error(signedUrlResult.failure);
-  //         throw new Error(signedUrlResult.failure);
-  //       }
-
-  //       const url = signedUrlResult.success!.url;
-
-  //       const messageId = signedUrlResult.success!.messageId;
-
-  //       await fetch(url, {
-  //         method: "PUT",
-  //         body: file,
-  //         headers: {
-  //           "Content-Type": file.type,
-  //         },
-  //       });
-
-  //       // const content = "this is the content";
-  //       content = messageRef.current?.value;
-  //       if (!content) return;
-  //       const updatedMessage = await addMessageContent(content, messageId);
-  //       if (updatedMessage?.failure !== undefined) {
-  //         console.error("something went wrong");
-  //         return;
-  //       }
-  //       console.log("message successfully sent");
-  //     } else {
-  //       content = messageRef.current?.value as string;
-  //       const response = await addMessage(recipientId, content, privateChatId);
-  //       if (response) {
-  //         console.log("Message successfully sent");
-  //         messageRef!.current!.value = "";
-  //         targetElement?.current?.scrollIntoView({ behavior: "smooth" });
-  //       }
-  //     }
-  //   } catch (e) {
-  //     console.error(e);
-  //     return;
-  //   } finally {
-  //     setFile(undefined);
-  //     setFileUrl(undefined);
-  //   }
-  // };
-
   return (
     <div>
-      {/* {JSON.stringify(incomingMessages)} */}
-
       <MessageArea
         messages={messages}
         user={user}
         targetElement={targetElement}
-        incomingMsgs={incomingMessages}
+        incomingMsgs={
+          incomingMessages as (Message & { messageId: MessageImage })[]
+        }
       />
 
       {file && fileUrl && (
@@ -265,7 +213,6 @@ export default function Messages({
             className="h-7 w-full flex-1 rounded-md border-2 border-gray-300 px-3 py-6 focus:border-black focus:outline-none"
             ref={messageRef}
           />
-
           <input
             type="file"
             id="media"
@@ -295,8 +242,6 @@ export default function Messages({
           </div>
         </form>
       </div>
-
-      {/* <Button onClick={() => sendMessage()}>Test real time</Button> */}
     </div>
   );
 }

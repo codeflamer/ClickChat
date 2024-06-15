@@ -25,6 +25,7 @@ export const uploadPhotoContentDB = async (
   photoData: PhotoData,
   content: string,
   recepientId: string,
+  privateChatId: string,
 ) => {
   const expectedSignature = cloudinary.utils.api_sign_request(
     { public_id: photoData.public_id, version: photoData.version },
@@ -32,7 +33,12 @@ export const uploadPhotoContentDB = async (
   );
 
   if (expectedSignature === photoData.signature) {
-    await createMessageImage(photoData.url, recepientId, content);
+    await createMessageImage(
+      photoData.url,
+      recepientId,
+      content,
+      privateChatId,
+    );
     console.log("Success");
   }
 };

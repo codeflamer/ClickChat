@@ -8,8 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AddFriendSchema } from "@/types";
 import * as z from "zod";
 import { useAction } from "next-safe-action/hooks";
+import { useToast } from "./ui/use-toast";
 
 export default function AddFriendForm() {
+  const { toast } = useToast();
+
   const myform = useForm<z.infer<typeof AddFriendSchema>>({
     resolver: zodResolver(AddFriendSchema),
     defaultValues: {
@@ -19,27 +22,54 @@ export default function AddFriendForm() {
 
   const { execute, result, status } = useAction(addFriendSafely, {
     onSuccess: (data) => {
-      if (data?.success) console.log(data.success);
-      if (data?.error) console.log(data.error);
+      if (data?.success) {
+        toast({
+          variant: "default",
+          title: "Success",
+          description: data?.success,
+        });
+      }
+      if (data?.error) {
+        toast({
+          variant: "destructive",
+          title: "An error has occured",
+          description: data?.error,
+        });
+      }
+      myform.reset();
     },
     onError: (err) => {
       if (err.serverError) {
         console.log(err.serverError);
+        toast({
+          variant: "destructive",
+          title: "An error has occured",
+          description: err.serverError,
+        });
       }
       if (err.validationErrors) {
         console.log(err.validationErrors);
+        // toast({
+        //   variant: "destructive",
+        //   title: "An error has occured",
+        //   description: err.serverError,
+        // });
       }
       if (err.fetchError) {
         console.log(err.fetchError);
+        toast({
+          variant: "destructive",
+          title: "An error has occured",
+          description: err.fetchError,
+        });
       }
     },
   });
 
   const onSubmit = (values: z.infer<typeof AddFriendSchema>) => {
     execute(values);
+    console.log("clicking");
   };
-
-  //   console.log(state);
 
   return (
     <div>

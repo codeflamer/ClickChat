@@ -38,7 +38,7 @@ export const addFriendSafely = action(AddFriendSchema, async ({ email }) => {
   console.log("Friend Found");
 
   const friendLists = await getFriends();
-  console.log(friendLists);
+  // console.log(friendLists);
 
   //for a more robust check , make it check against user not in the with STATUS PCCEPTED AND PENDING
   //check against already added friends
@@ -188,9 +188,18 @@ export const createMessageImage = async (
   url: string,
   recipientId: string,
   content: string,
+  privateChatId: string,
 ) => {
   const session = await auth();
   if (!session?.user?.id) return;
+
+  pusherServer.trigger(privateChatId, "incoming-messages", {
+    senderId: session.user.id,
+    recipientId,
+    content,
+    url,
+    id: uuidv4(),
+  });
 
   try {
     const message = await db.message.create({
