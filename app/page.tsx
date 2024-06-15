@@ -1,6 +1,4 @@
-import SignOut from "@/components/sign-out";
 import { Button } from "@/components/ui/button";
-import { inter, roboto_mono, dancing_script } from "./font";
 import { auth } from "@/lib/auth/auth";
 import Nav from "@/components/nav-top";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

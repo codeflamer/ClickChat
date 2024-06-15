@@ -1,7 +1,6 @@
 import React from "react";
-
 import { auth } from "@/lib/auth/auth";
-import { inter, roboto_mono, dancing_script } from "@/app/font";
+import { dancing_script } from "@/app/font";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import SignOut from "./sign-out";
@@ -14,7 +13,7 @@ const Nav = async () => {
         <div
           className={`cursor-pointer text-3xl font-bold ${dancing_script.className}`}
         >
-          Click-Chat
+          <Link href="/">Click-Chat</Link>
         </div>
         <div>
           <Link href="/feed">
