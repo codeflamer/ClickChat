@@ -12,17 +12,16 @@ export default async function Page() {
   }
 
   return (
-    <section className="space-y-3">
+    <section className="h-screen space-y-3">
       <Separator />
       <h2 className="text-center text-[20px] font-medium">
         Send Friend Request{" "}
       </h2>
-      <div className="mt-3">
+      <div className="mx-auto flex h-3/4 items-center justify-center md:items-start md:justify-start">
         <Suspense fallback={<>Loading...</>}>
           <AddFriendForm />
         </Suspense>
       </div>
-      <Separator />
     </section>
   );
 }

@@ -7,6 +7,8 @@ import {
   DeclineFriendRequest,
   acceptFriendRequest,
 } from "@/lib/database/mutation";
+import FriendsInfoHeader from "./friends-settings-title";
+import { HandCoins } from "lucide-react";
 
 type NullabeUser = User | null;
 
@@ -35,7 +37,11 @@ export default function RequestReceived({
   if (receivedFriendRequests)
     return (
       <>
-        <h2>Received requests: ({receivedFriendRequests?.length}): </h2>
+        <FriendsInfoHeader
+          total={receivedFriendRequests!.length}
+          title="Friend requests"
+          Icon={<HandCoins />}
+        />
         <ul>
           {receivedFriendRequests
             ? receivedFriendRequests.map((friend) => (

@@ -75,7 +75,7 @@ export default function AddFriendForm() {
     <div>
       {/* <form action={formAction}> */}
       <form onSubmit={myform.handleSubmit(onSubmit)}>
-        <label htmlFor="email">Friend-Email:</label>
+        <label htmlFor="email">Email:</label>
         <input
           id="email"
           type="email"
@@ -92,9 +92,15 @@ export default function AddFriendForm() {
               {msg}
             </p>
           ))} */}
-        <Button disabled={status === "executing"} type="submit">
-          Send Request
-        </Button>
+        <div className="flex justify-center md:justify-start">
+          <Button
+            disabled={status === "executing"}
+            type="submit"
+            className="mt-5 md:mt-0"
+          >
+            Send Request
+          </Button>
+        </div>
       </form>
     </div>
   );

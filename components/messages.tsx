@@ -9,7 +9,7 @@ import { pusherClient } from "@/lib/pusher/pusher";
 import { compareAsc } from "date-fns";
 import Image from "next/image";
 import { Button } from "./ui/button";
-import { CircleX, Paperclip, SendHorizontal } from "lucide-react";
+import { CircleX, Paperclip, Plus, SendHorizontal } from "lucide-react";
 import {
   getSignatureServer,
   uploadPhotoContentDB,
@@ -20,6 +20,7 @@ type MessageType = {
   messages: (Message & { messageId: MessageImage })[];
   user: User;
   privateChatId: string;
+  recepientImage: string;
 };
 
 export default function Messages({
@@ -27,6 +28,7 @@ export default function Messages({
   messages,
   user,
   privateChatId,
+  recepientImage,
 }: MessageType) {
   // const privateChatId = "the-private-room"; //need to make it better
   const messageRef = useRef<HTMLInputElement>(null);
@@ -170,6 +172,7 @@ export default function Messages({
         incomingMsgs={
           incomingMessages as (Message & { messageId: MessageImage })[]
         }
+        recepientImage={recepientImage}
       />
 
       {file && fileUrl && (
@@ -210,7 +213,7 @@ export default function Messages({
             id="content"
             name="content"
             placeholder="Enter Message"
-            className="h-7 w-full flex-1 rounded-md border-2 border-gray-300 px-3 py-6 focus:border-black focus:outline-none"
+            className="h-7 w-full flex-1 rounded-md border border-gray-300 px-3 py-6 focus:border-black focus:outline-none"
             ref={messageRef}
           />
           <input
@@ -227,14 +230,15 @@ export default function Messages({
             <div className="flex">
               <label
                 htmlFor="media"
-                className="mr-1 flex cursor-pointer items-center rounded-md border-0 bg-primary px-4 py-1 text-sm font-semibold text-white hover:bg-primary/90"
+                className="mr-3 flex cursor-pointer items-center rounded-full border-0 bg-[#e0e2e3] px-2 py-2 text-sm font-semibold text-black shadow-md"
               >
-                <Paperclip />
+                {/* <Paperclip /> */}
+                <Plus />
               </label>
               <Button
                 type="submit"
                 onClick={handleSubmitClick}
-                className="h-full bg-green-400 text-white hover:bg-green-500"
+                className="h-full bg-black text-white hover:bg-black/90"
               >
                 <SendHorizontal />
               </Button>

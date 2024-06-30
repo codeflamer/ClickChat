@@ -1,3 +1,4 @@
+import { questrial } from "@/app/font";
 import { checkUser, cn, getDay } from "@/lib/utils";
 import { Message, MessageImage } from "@prisma/client";
 import { format } from "date-fns";
@@ -10,11 +11,13 @@ export default function MessageArea({
   user,
   targetElement,
   incomingMsgs,
+  recepientImage,
 }: {
   messages: (Message & { messageId: MessageImage })[];
   user: User;
   targetElement: React.RefObject<HTMLDivElement>;
   incomingMsgs: (Message & { messageId: MessageImage })[];
+  recepientImage: string;
 }) {
   useEffect(() => {
     targetElement?.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,10 +26,11 @@ export default function MessageArea({
 
   return (
     <section
-      className="mt-2 flex-1 space-y-1 overflow-y-scroll px-1"
-      style={{ height: "calc(100vh - 95px)" }}
+      className={`${questrial.className} mt-2 flex-1 space-y-1 overflow-y-scroll px-1`}
+      style={{ height: "calc(100vh - 110px)" }}
       // initially 80px
     >
+      {/* Normal Message */}
       {messages?.map((message) => (
         <div
           key={message.id}
@@ -35,13 +39,40 @@ export default function MessageArea({
             "flex-row": !checkUser(message.senderId, user.id!),
           })}
         >
+          {/* Image for recepient picture */}
+          {!checkUser(message.senderId, user.id!) && (
+            <div className="mr-2 flex items-end">
+              <Image
+                src={recepientImage}
+                width={35}
+                height={35}
+                alt="profile pix"
+                className="h-[35px] w-[35px] rounded-full hover:cursor-pointer"
+              />
+            </div>
+          )}
+
+          {/* Image for sender picture */}
+          {checkUser(message.senderId, user.id!) && (
+            <div className="ml-2 flex items-end">
+              <Image
+                src={user.image!}
+                width={35}
+                height={35}
+                alt="profile pix"
+                className="h-[35px] w-[35px] rounded-full border hover:cursor-pointer"
+              />
+            </div>
+          )}
+
           <div
             className={cn("rounded-sm px-2 py-2 text-white", {
               "bg-[#131720]": checkUser(message.senderId, user!.id!),
-              "bg-[#2d3748]": !checkUser(message.senderId, user!.id!),
+              "bg-[#383e48]": !checkUser(message.senderId, user!.id!),
             })}
           >
             {/* {message} */}
+
             {message.messageId && (
               <a
                 href={message.messageId.imageUrl}
@@ -60,10 +91,10 @@ export default function MessageArea({
                 />
               </a>
             )}
-            <p>{message.content}</p>
-            <span className="text-[10px] text-gray-200">
-              {format(message.createdAt, "HH:mm")}/ {getDay(message.createdAt)}
-              <br />
+            <p className="mt-2 text-[16px]">{message.content}</p>
+            <span className="mt-2 flex justify-between space-x-3 text-[10px] text-gray-200">
+              <p>{format(message.createdAt, "HH:mm")}</p>{" "}
+              <p>{getDay(message.createdAt)} </p>
             </span>
           </div>
         </div>
@@ -79,6 +110,31 @@ export default function MessageArea({
               "flex-row": !checkUser(message.senderId, user.id!),
             })}
           >
+            {/* Image for recepient picture */}
+            {!checkUser(message.senderId, user.id!) && (
+              <div className="mr-2 flex items-end">
+                <Image
+                  src={recepientImage}
+                  width={35}
+                  height={35}
+                  alt="profile pix"
+                  className="h-[35px] w-[35px] rounded-full hover:cursor-pointer"
+                />
+              </div>
+            )}
+
+            {/* Image for sender picture */}
+            {checkUser(message.senderId, user.id!) && (
+              <div className="ml-2 flex items-end">
+                <Image
+                  src={user.image!}
+                  width={35}
+                  height={35}
+                  alt="profile pix"
+                  className="h-[35px] w-[35px] rounded-full border hover:cursor-pointer"
+                />
+              </div>
+            )}
             <div
               className={cn("rounded-sm px-2 py-2 text-white", {
                 "bg-[#131720]": checkUser(message.senderId, user!.id!),
@@ -101,11 +157,10 @@ export default function MessageArea({
                   />
                 </a>
               )}
-              <p>{message.content}</p>
-              <span className="text-[10px] text-gray-200">
-                {format(message.createdAt, "HH:mm")}/{" "}
-                {getDay(message.createdAt)}
-                <br />
+              <p className="mt-2 text-[16px]">{message.content}</p>
+              <span className="mt-2 flex justify-between space-x-3 text-[10px] text-gray-200">
+                <p>{format(message.createdAt, "HH:mm")}</p>{" "}
+                <p>{getDay(message.createdAt)} </p>
               </span>
             </div>
           </div>
