@@ -14,10 +14,11 @@ import {
   getSignatureServer,
   uploadPhotoContentDB,
 } from "@/lib/cloudinary/actions";
+// & { messageId: MessageImage }
 
 type MessageType = {
   recipientId: string;
-  messages: (Message & { messageId: MessageImage })[];
+  messages: ({ messageId: MessageImage | null } & Message)[];
   user: User;
   privateChatId: string;
   recepientImage: string;
@@ -202,7 +203,7 @@ export default function Messages({
         </div>
       )}
 
-      <div className="absolute bottom-0 m-0 w-full rounded-md">
+      <div className="absolute bottom-2 left-2 right-2 m-0 rounded-md">
         {/* action={handleSubmit} */}
         <form className="relative flex items-center py-1">
           <label htmlFor="content" className="hidden">
@@ -232,7 +233,6 @@ export default function Messages({
                 htmlFor="media"
                 className="mr-3 flex cursor-pointer items-center rounded-full border-0 bg-[#e0e2e3] px-2 py-2 text-sm font-semibold text-black shadow-md"
               >
-                {/* <Paperclip /> */}
                 <Plus />
               </label>
               <Button

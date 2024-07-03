@@ -42,7 +42,7 @@ export default async function SideBar() {
   const friends = await getFriends();
 
   return (
-    <div className="flex h-screen flex-col justify-between p-2">
+    <div className="grainy-light flex h-screen flex-col justify-between p-2">
       <section className="flex-1">
         <div
           className={`cursor-pointer text-3xl font-bold ${dancing_script.className} `}
@@ -113,7 +113,7 @@ export default async function SideBar() {
         </Button>
       </section>
 
-      <div className="mt-2 w-full">
+      <div className="mb-2 mt-2 w-full">
         <SignOut />
       </div>
     </div>

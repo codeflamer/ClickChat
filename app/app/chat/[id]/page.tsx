@@ -7,8 +7,8 @@ import {
   getUserById,
 } from "@/lib/database/queries";
 import { GripHorizontal, Search } from "lucide-react";
-import Image from "next/image";
 import { redirect } from "next/navigation";
+import Loading from "./loading";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const session = await auth();
@@ -19,12 +19,10 @@ export default async function Page({ params }: { params: { id: string } }) {
   const recipient = await getUserById(recipientId);
   const privateChatId = await getPrivateChatId(recipientId);
 
-  console.log(session.user.image);
-
   return (
-    <div className="relative flex h-screen max-h-screen flex-col overflow-hidden">
+    <div className="grainy-dark relative flex h-screen max-h-screen flex-col overflow-hidden">
       <div className="mb-2 mt-2 flex items-center justify-between space-x-2 px-4 text-[20px] font-bold">
-        <span>{recipient?.email}</span>
+        <span className="cursor-pointer">{recipient?.email}</span>
         <ul className="flex space-x-8">
           <li>
             <Search className="cursor-pointer" />
@@ -34,7 +32,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           </li>
         </ul>
       </div>
-      <Separator />
+      <Separator className="shadow-lg" />
       <div>
         <Messages
           recipientId={recipientId}

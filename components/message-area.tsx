@@ -13,7 +13,7 @@ export default function MessageArea({
   incomingMsgs,
   recepientImage,
 }: {
-  messages: (Message & { messageId: MessageImage })[];
+  messages: ({ messageId: MessageImage | null } & Message)[];
   user: User;
   targetElement: React.RefObject<HTMLDivElement>;
   incomingMsgs: (Message & { messageId: MessageImage })[];
@@ -27,7 +27,7 @@ export default function MessageArea({
   return (
     <section
       className={`${questrial.className} mt-2 flex-1 space-y-1 overflow-y-scroll px-1`}
-      style={{ height: "calc(100vh - 110px)" }}
+      style={{ height: "calc(100vh - 117px)" }}
       // initially 80px
     >
       {/* Normal Message */}

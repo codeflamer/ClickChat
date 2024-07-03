@@ -6,9 +6,10 @@ import { Menu, SquareChevronRight } from "lucide-react";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <section className="flex bg-slate-50 md:space-x-2">
-        <section className="border-r border-black shadow-lg">
+      <section className="flex bg-slate-50">
+        <section className="grainy-dark border-r border-black shadow-lg">
           <div className="md:hidden">
+            {/*For mobile sibebar*/}
             <Sheet>
               <SheetTrigger>
                 <SquareChevronRight className="mt-3" />
@@ -19,6 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Sheet>
           </div>
           <div className="hidden md:block">
+            {/*For desktop sibebar*/}
             <SideBar />
           </div>
         </section>
