@@ -3,5 +3,3 @@
 ```bash
 Add -> Click -> Accept -> Chat
 ```
-
-:blush:
